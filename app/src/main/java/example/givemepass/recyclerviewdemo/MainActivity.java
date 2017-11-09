@@ -1,12 +1,19 @@
 package example.givemepass.recyclerviewdemo;
 
+import android.app.DownloadManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,8 +27,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Button btn_version = (Button) findViewById(R.id.button_version);
+
         ArrayList<String> myDataset = new ArrayList<>();
-        for(int i = 0; i < 100; i++){
+        for(int i = 0; i < 20 ; i++){
             myDataset.add(Integer.toString(i));
         }
         mAdapter = new MyAdapter(myDataset);
@@ -30,7 +40,51 @@ public class MainActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(mAdapter);
+        btn_version.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getversion();
+                getnewversion();
+            }
+        });
+
     }
+
+    public void getnewversion(){
+        String uri = "http://192.168.0.102:8000/app-debug.apk";
+        DownloadManager.Request downloadManager = new DownloadManager.Request(Uri.parse(uri));
+        Toast.makeText(this, "Down Successful", Toast.LENGTH_SHORT).show();
+        downloadManager.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+        //设置通知栏标题
+        downloadManager.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+        downloadManager.setTitle("下载");
+        downloadManager.setDescription("apk正在下载");
+        downloadManager.setAllowedOverRoaming(false);
+        //设置文件存放目录
+        downloadManager.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "mydown");
+
+        startInstall(this, Uri.parse(uri));
+    }
+
+    public static void startInstall(Context context, Uri uri) {
+        Intent install = new Intent(Intent.ACTION_VIEW);
+        install.setDataAndType(uri, "application/vnd.android.package-archive");
+        install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(install);
+    }
+
+    public void getversion(){
+        try {
+            String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            Toast.makeText(this, versionName, Toast.LENGTH_SHORT).show();
+            //DownloadManager manager = (DownloadManager) appContext.getSystemService(Context.DOWNLOAD_SERVICE);
+
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void downloadApk(){}
 
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         private List<String> mData;
