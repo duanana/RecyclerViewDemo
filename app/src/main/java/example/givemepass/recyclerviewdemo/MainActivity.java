@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,11 +52,37 @@ public class MainActivity extends AppCompatActivity {
                 getnewversion();
             }
         });
+        Button page2btn = (Button) findViewById(R.id.button_page2);
+        page2btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    httpget();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
     }
 
+    public static void httpget() throws Exception{
+
+        URL url = new URL("http://192.168.0.107:8000");
+        URLConnection urlConnection = url.openConnection();                                                    // 打开连接
+        BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(),"utf-8")); // 获取输入流
+        String line = null;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+
+        Log.e("rrrrrrrrrrr", sb.toString());
+    }
+
     public void getnewversion(){
-        String uri = "http://192.168.0.102:8000/app-debug.apk";
+        String uri = "http://192.168.0.107:8000/app-debug.apk";
         DownloadManager.Request downloadManager = new DownloadManager.Request(Uri.parse(uri));
         Toast.makeText(this, "Down Successful", Toast.LENGTH_SHORT).show();
         downloadManager.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
@@ -77,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             Toast.makeText(this, versionName, Toast.LENGTH_SHORT).show();
-            //DownloadManager manager = (DownloadManager) appContext.getSystemService(Context.DOWNLOAD_SERVICE);
+            DownloadManager manager = (DownloadManager) this.getSystemService(Context.DOWNLOAD_SERVICE);
 
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
